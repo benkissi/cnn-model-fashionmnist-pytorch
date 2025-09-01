@@ -14,6 +14,9 @@ from helper_functions import accuracy_fn, print_train_time, train_step, test_ste
 
 import random
 
+from torchmetrics import ConfusionMatrix
+from mlxtend.plotting import plot_confusion_matrix
+
 # Getting dataset
 # Using MNIST dataset - FASHION MNIST
 train_data = datasets.FashionMNIST(
@@ -183,3 +186,33 @@ pred_classes = pred_probs.argmax(dim=1)
 print(f"Pred class: {pred_classes}, \nTrue labels: {test_labels}")
 
 plot_conv_predictions(test_samples, test_labels, class_names, pred_classes)
+
+
+# Confusion matrix
+y_preds = []
+model.eval()
+
+with torch.inference_mode():
+    for X, y in tqdm(test_dataloader, desc="Making predictions...."):
+        X, y = X.to(device), y.to(device)
+        y_logit = model(X)
+        # turn logits -> into probabilities -> labels
+        y_pred = torch.softmax(y_logit.squeeze(), dim=0).argmax(dim=1)
+        y_preds.append(y_pred.cpu())
+
+# concat list of preds into a tensor
+y_pred_tensor = torch.cat(y_preds)
+print(y_pred_tensor[:10])
+
+confmat = ConfusionMatrix(task="multiclass", num_classes=len(class_names))
+confmat_tensor = confmat(preds=y_pred_tensor, target=test_data.targets)
+
+# plot conf matrix
+
+fig, ax = plot_confusion_matrix(
+    confmat_tensor.numpy(),
+    class_names=class_names,
+    figsize=(10, 7)
+)
+
+plt.show()
