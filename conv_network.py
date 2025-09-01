@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from pathlib import Path
 
 import torchvision
 from torchvision import datasets, transforms
@@ -216,3 +217,16 @@ fig, ax = plot_confusion_matrix(
 )
 
 plt.show()
+
+
+# save model
+MODEL_PATH = Path("models")
+MODEL_PATH.mkdir(parents=True, exist_ok=True)
+
+MODEL_NAME = "vision_fashion_mnist_model.pth"
+MODEL_SAVE_PATH = MODEL_PATH / MODEL_NAME
+
+print(f"Model save path: {MODEL_SAVE_PATH}")
+torch.save(obj=model.state_dict(), f=MODEL_SAVE_PATH)
+
+# you can use torch.isclose to check the model results between saved and trained
